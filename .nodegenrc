@@ -3,6 +3,8 @@
   "nodegenMockDir": "/__mocks__",
   "nodegenType": "server",
   "asyncApi": {
-    "stubChannelType": "subscribe"
+    "stubChannelType": "subscribe",
+    "includedOperationIds": [],
+    "excludedOperationIds": [],
   }
 }
