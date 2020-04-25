@@ -5,6 +5,6 @@
   "asyncApi": {
     "stubChannelType": "subscribe",
     "includedOperationIds": [],
-    "excludedOperationIds": [],
+    "excludedOperationIds": []
   }
 }
