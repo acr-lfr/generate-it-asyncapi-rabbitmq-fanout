@@ -2,6 +2,20 @@
 
 A set of templates to automate RabbitMQ connections and queues with an async api file.
 
+This set of templates uses [q-wrapper](https://www.npmjs.com/package/q-wrapper) to publish and consume from/to RabbitMQ.
+
+## Initialise
+
+Build:
+
+
+Initialise a new directory for each queue you wish to bind to:
+```
+import RabbitMQService from '<parentdir>/generated/RabbitMQService'
+import config from '@/config'
+new RabbitMQService(config.rabbitMQ)
+```
+
 ## Sending data to the exchange
 Each channel operation id emitted to the nodejs event bus from the [nodegen typescript server](https://github.com/acrontum/openapi-nodegen-typescript-server/blob/master/src/utils/eventBus.ts). When the event [is heard](https://github.com/acrontum/generate-it-asyncapi-rabbitmq/blob/master/generated/channels.ts.njk#L23) the payload is passed to the exchange and the opId as the routing key.
 

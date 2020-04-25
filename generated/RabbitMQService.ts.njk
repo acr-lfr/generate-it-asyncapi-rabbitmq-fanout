@@ -1,6 +1,6 @@
+import { Message as amqMessage } from 'amqplib/callback_api';
 import { QWrapperDomain } from 'q-wrapper';
 import { QWrapperSettings } from 'q-wrapper/lib/models';
-import { Message as amqMessage } from 'amqplib/callback_api';
 import * as operationIds from './operationIds';
 import * as domains from './domainIndex';
 import eventBus from '@/utils/eventBus';
@@ -10,40 +10,41 @@ import eventBus from '@/utils/eventBus';
 class RabbitMQService {
   private qWrapper: QWrapperDomain;
 
-  public async setup (qWrapperSettings: QWrapperSettings): Promise<void> {
+  constructor (qWrapperSettings: QWrapperSettings) {
     this.qWrapper = new QWrapperDomain(qWrapperSettings);
-    await this.qWrapper.initialize();
-    this.listenForInternalAppEvents();
-    this.listenForRabbitMQ();
+    this.qWrapper.initialize().then(() => {
+      this.listenForInternalAppEvents();
+      this.consumeQueue();
+    }).catch((e) => {
+      throw new Error(e)
+    });
   }
 
-  public listenForInternalAppEvents () {
-    {% for channelName, channelObj in swagger.channels -%}{% if channelObj.publish -%}
-    {% set channelId = _.toUpper(channelObj.publish.operationId) -%}
+  private listenForInternalAppEvents () {
+      {% for channelName, channelObj in swagger.channels -%}{% if channelObj.publish -%}
+      {% set channelId = _.toUpper(channelObj.publish.operationId) -%}
     eventBus.on(operationIds.{{ channelId }}, (payload: any) => {
       console.log('EVENT ' + operationIds.{{ channelId }});
       this.qWrapper.sendToExchange(
         payload,
         operationIds.{{ channelId }});
     });
-    {% endif -%}
-    {% endfor -%}
+      {% endif -%}
+      {% endfor -%}
   }
 
-  public listenForRabbitMQ (): void {
+  private consumeQueue (): void {
     this.qWrapper.consume(async (message: amqMessage) => {
       switch (message.fields.routingKey) {
-        {% for channelName, channelObj in swagger.channels -%}
-        {% if channelObj.subscribe -%}
-        {% set opId = channelObj.subscribe.operationId -%}
-        {% if (not asyncApiIncOpIds and not asyncApiExcOpIds)
-          or (asyncApiIncOpIds and _.indexOf(asyncApiIncOpIds, opId) == -1)
-          or (asyncApiExcOpIds and _.indexOf(asyncApiExcOpIds, opId) != -1) -%}
-        {% set channelId = _.toUpper(channelObj.subscribe.operationId) -%}
+              {% for channelName, channelObj in swagger.channels -%}
+              {% if channelObj.subscribe -%}
+              {% set opId = channelObj.subscribe.operationId -%}
+              {% if (not asyncApiIncOpIds and not asyncApiExcOpIds)
+                  or (asyncApiIncOpIds and _.indexOf(asyncApiIncOpIds, opId) == -1)
+                  or (asyncApiExcOpIds and _.indexOf(asyncApiExcOpIds, opId) != -1) -%}
+              {% set channelId = _.toUpper(channelObj.subscribe.operationId) -%}
         case operationIds.{{ channelId }}: {
-          // Start doing something with the message...
-          // Return a response
-          {% set domainName = ucFirst([_.camelCase(opId), 'Domain'] | join) -%}
+            {% set domainName = ucFirst([_.camelCase(opId), 'Domain'] | join) -%}
           let processed = true;
           let requeue = true;
           try {
@@ -58,9 +59,9 @@ class RabbitMQService {
             requeue
           };
         }
-        {% endif -%}
-        {% endif -%}
-        {% endfor -%}
+              {% endif -%}
+              {% endif -%}
+              {% endfor -%}
         default:
           return {
             processed: true,
