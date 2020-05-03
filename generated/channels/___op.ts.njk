@@ -1,6 +1,5 @@
 import { Message as amqMessage } from 'amqplib/callback_api';
 import { QWrapperDomain } from 'q-wrapper';
-import { {% for interface in importInterfaces(operations) -%}{{ interface }},{%- endfor %} } from '../interfaces';
 import eventBus from '@/utils/eventBus';
 import * as operationIds from '../operationIds';
 {% set DomainName = ucFirst(operation_name) + 'Domain' -%}
