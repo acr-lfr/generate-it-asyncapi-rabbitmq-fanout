@@ -1,4 +1,4 @@
-import { amqMessage } from 'amqplib/callback_api';
+import { Message as amqMessage } from 'amqplib/callback_api';
 import { QWrapperDomain } from 'q-wrapper';
 import { {% for interface in importInterfaces(operations) -%}{{ interface }},{%- endfor %} } from '../interfaces';
 import eventBus from '@/utils/eventBus';
@@ -29,7 +29,9 @@ class {{ ChannelName }} {
         {% set channelId = _.toUpper(channel.operationId) -%}
         case operationIds.{{ channelId }}: {
           try {
-            await {{ DomainName}}.{{channel.operationId}}(message.content.toString());
+            await {{ DomainName}}.{{channel.operationId}}(
+              JSON.parse(message.content.toString())
+            );
           } catch (e) {
             console.error(e);
             processed = false;
