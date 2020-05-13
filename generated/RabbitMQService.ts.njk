@@ -12,7 +12,7 @@ class RabbitMQService {
   public async setup (qWrapperSettings: QWrapperSettings): Promise<void> {
     this.qWrapper = new QWrapperDomain(qWrapperSettings);
     await this.qWrapper.initialize();
-    this.bindChannels()
+    this.bindChannels();
   }
 
   public bindChannels () {

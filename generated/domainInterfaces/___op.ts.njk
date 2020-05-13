@@ -1,4 +1,5 @@
-import { {% for interface in importInterfaces(operations, ['subscribe']) -%}{{ interface }},{%- endfor %} } from '../interfaces';
+{% set interfaces = importInterfaces(operations, ['subscribe']) -%}
+{% if interfaces %}import { {% for interface in interfaces -%}{{ interface }},{%- endfor %} } from '../interfaces';{% endif %}
 
 export interface {{ ucFirst(operation_name) }}DomainInterface {
   {% for op in operations -%}
