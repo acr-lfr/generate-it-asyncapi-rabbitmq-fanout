@@ -1,6 +1,7 @@
 import { {% for interface in importInterfaces(operations, ['subscribe']) -%}{{ interface }},{%- endfor %} } from '../generated/interfaces';
+import { {{ ucFirst(operation_name) }}DomainInterface } from '../generated/domainInterfaces/{{ ucFirst(operation_name) }}DomainInterface'
 
-class {{ ucFirst(operation_name) }}Domain {
+class {{ ucFirst(operation_name) }}Domain implements {{ ucFirst(operation_name) }}DomainInterface{
   {% for op in operations -%}
   {% for method, channel in op.channel -%}
   {% if method === 'subscribe' %}
