@@ -14,7 +14,7 @@ class {{ ChannelName }} {
     eventBus.on(operationIds.{{ channelId }}, (payload: any) => {
       console.log('EVENT EMIT ' + operationIds.{{ channelId }});
       qWrapper.sendToExchange(
-        objectReduceByMap(payload, {{ channel.message.payload | dump }}),
+        objectReduceByMap(payload, {{ paramsOutputReducer(channel.message.payload) }}),
         operationIds.{{ channelId }});
     });
     {% endif %}{% endfor -%}{% endfor -%}
