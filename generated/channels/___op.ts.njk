@@ -1,6 +1,7 @@
 import { Message as amqMessage } from 'amqplib/callback_api';
 import { QWrapperDomain } from 'q-wrapper';
 import eventBus from '@/utils/eventBus';
+import objectReduceByMap from 'object-reduce-by-map';
 import * as operationIds from '../operationIds';
 {% set DomainName = ucFirst(operation_name) + 'Domain' -%}
 import {{ DomainName }} from '../../domains/{{ DomainName }}'
@@ -11,9 +12,9 @@ class {{ ChannelName }} {
     {% for op in operations -%}{% for method, channel in op.channel -%}{% if method === 'publish' %}
     {% set channelId = _.toUpper(channel.operationId) -%}
     eventBus.on(operationIds.{{ channelId }}, (payload: any) => {
-      console.log('EVENT ' + operationIds.{{ channelId }});
+      console.log('EVENT EMIT ' + operationIds.{{ channelId }});
       qWrapper.sendToExchange(
-        payload,
+        objectReduceByMap(payload, {{ channel.message.payload | dump }}),
         operationIds.{{ channelId }});
     });
     {% endif %}{% endfor -%}{% endfor -%}
