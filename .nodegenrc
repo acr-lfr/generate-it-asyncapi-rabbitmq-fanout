@@ -3,9 +3,7 @@
   "nodegenMockDir": "/__mocks__",
   "nodegenType": "server",
   "helpers": {
-    "operationNames": {
-      "includePublish": [],
-      "includeSubscribe": []
-    }
+    "subscribeOpIds": ["msAuthCacheConnection"],
+    "publishOpIds": ["msImageCacheUser"]
   }
 }
