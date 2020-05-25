@@ -10,7 +10,7 @@ import {{ channel.subscribe.operationId }}SubscribeHandle from '../subscribeHand
 {% endif -%}
 {% endfor %}
 
-class RabbitMQ {
+class Service {
   private qWrapper: QWrapperDomain;
 
   public async setup (qWrapperSettings: QWrapperSettings): Promise<void> {
@@ -74,4 +74,4 @@ class RabbitMQ {
     });
   }
 }
-export default new RabbitMQ();
+export default new Service();
