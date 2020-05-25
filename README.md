@@ -26,3 +26,17 @@ It is expected that your asyncapi yaml file's channels follow a path like feel e
 The `.nodegenrc` file's helpers.subscribeOpIds|publishOpIds, each should contain a list of operation IDs you wish to eiterh subscribe to or publish to.
 
 Change the default values to whatever best fits your asyncapi file.
+
+Add to the global.d.ts file:
+```
+/**
+ * IMPORTANT - do not use imports in this file!
+ * Use this file to declare attribute for the global, if you must.
+ */
+// tslint:disable-next-line:no-namespace
+declare namespace NodeJS {
+  export interface Global {
+    qWrapper: any;
+  }
+}
+```

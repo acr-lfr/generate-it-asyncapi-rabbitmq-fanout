@@ -11,11 +11,9 @@ import {{ channel.subscribe.operationId }}SubscribeHandle from '../subscribeHand
 {% endfor %}
 
 class RabbitMQService {
-  private qWrapper: QWrapperDomain;
-
   public async setup (qWrapperSettings: QWrapperSettings): Promise<void> {
-    this.qWrapper = new QWrapperDomain(qWrapperSettings);
-    await this.qWrapper.initialize();
+    global.qWrapper = new QWrapperDomain(qWrapperSettings);
+    await global.qWrapper.initialize();
     this.subscribe();
   }
 
@@ -28,7 +26,7 @@ class RabbitMQService {
    * Description: {{ channel.description }}
    */
   publish{{ ucFirst(channel.publish.operationId) }} (payload: interfaces.{{ channel.publish['x-response-definitions'] }} ): void {
-    this.qWrapper.sendToExchange(
+    global.qWrapper.sendToExchange(
       objectReduceByMap(payload, {{ paramsOutputReducer(channel.publish.message.payload) }}),
       operationIds.{{ channelId }}
     );
@@ -42,7 +40,7 @@ class RabbitMQService {
    * as processed for the queue this ms is bound to.
    */
   subscribe (): void {
-    this.qWrapper.consume(async (message: amqMessage) => {
+    global.qWrapper.consume(async (message: amqMessage) => {
       switch (message.fields.routingKey) {
         {% for path, channel in swagger.channels -%}
         {% if channel.subscribe and _.includes(nodegenRc.helpers.subscribeOpIds, channel.subscribe.operationId) %}
