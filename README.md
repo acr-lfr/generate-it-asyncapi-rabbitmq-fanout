@@ -11,21 +11,18 @@ Within an existing server add a new script (point it to your own entry yml file)
 Read and change the example `.nodegenrc` generated:
 ```json
 {
-  "nodegenDir": "generated",
+  "nodegenDir": "rabbitMQ",
   "nodegenMockDir": "/__mocks__",
   "nodegenType": "server",
   "helpers": {
-    "operationNames": {
-      "include": ["ms-auth"]
-    }
+    "subscribeOpIds": ["msAuthCacheConnection"],
+    "publishOpIds": ["msImageCacheUser"]
   }
 }
 ```
 
 It is expected that your asyncapi yaml file's channels follow a path like feel eg: https://github.com/acrontum/generate-it/blob/master/test_asyncapi.yml
 
-The `.nodegenrc` file's helpers.operationNames.include|exclude will include or exclude channels from the yaml file based on the 1st segment.
+The `.nodegenrc` file's helpers.subscribeOpIds|publishOpIds, each should contain a list of operation IDs you wish to eiterh subscribe to or publish to.
 
-By default, the templates only include an example 1st segment "ms-auth", it is quite unlikely that your yaml file contains this 1st segment so after the 1st generation you will need to update the the .nodegenrc file to include or exclude the correct 1st segments.
-
-As this set of templates follow a very simple fanout pattern, the concept here is that any item published is pushed to all other q's:
+Change the default values to whatever best fits your asyncapi file.

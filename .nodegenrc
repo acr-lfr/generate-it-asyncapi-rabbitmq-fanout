@@ -1,5 +1,5 @@
 {
-  "nodegenDir": "generated",
+  "nodegenDir": "rabbitMQ",
   "nodegenMockDir": "/__mocks__",
   "nodegenType": "server",
   "helpers": {
