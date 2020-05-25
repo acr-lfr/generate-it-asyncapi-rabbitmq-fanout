@@ -16,6 +16,11 @@ class RabbitMQService {
     await global.qWrapper.initialize();
     this.subscribe();
   }
+  setupCheck(){
+    if(!global.qWrapper){
+      throw new Error('Ensure you call the setup method 1st before calling anything else from this class and call it only once.')
+    }
+  }
 
   {% for path, channel in swagger.channels -%}
     {% if channel.publish and _.includes(nodegenRc.helpers.publishOpIds, channel.publish.operationId) -%}
@@ -26,6 +31,7 @@ class RabbitMQService {
    * Description: {{ channel.description }}
    */
   publish{{ ucFirst(channel.publish.operationId) }} (payload: interfaces.{{ channel.publish['x-response-definitions'] }} ): void {
+    this.setupCheck();
     global.qWrapper.sendToExchange(
       objectReduceByMap(payload, {{ paramsOutputReducer(channel.publish.message.payload) }}),
       operationIds.{{ channelId }}
