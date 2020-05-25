@@ -11,7 +11,7 @@ import {{ channel.subscribe.operationId }}SubscribeHandle from '../subscribeHand
 {% endfor %}
 
 class RabbitMQService {
-  public async setup (qWrapperSettings: QWrapperSettings): Promise<void> {
+  async setup (qWrapperSettings: QWrapperSettings): Promise<void> {
     global.qWrapper = new QWrapperDomain(qWrapperSettings);
     await global.qWrapper.initialize();
     this.subscribe();
@@ -45,7 +45,7 @@ class RabbitMQService {
    * For any routing key not subscribed to, the item from the is simply marked
    * as processed for the queue this ms is bound to.
    */
-  subscribe (): void {
+  private subscribe (): void {
     global.qWrapper.consume(async (message: amqMessage) => {
       switch (message.fields.routingKey) {
         {% for path, channel in swagger.channels -%}
