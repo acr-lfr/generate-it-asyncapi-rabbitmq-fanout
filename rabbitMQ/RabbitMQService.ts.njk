@@ -16,6 +16,7 @@ class RabbitMQService {
   public async setup (qWrapperSettings: QWrapperSettings): Promise<void> {
     this.qWrapper = new QWrapperDomain(qWrapperSettings);
     await this.qWrapper.initialize();
+    this.subscribe();
   }
 
   {% for path, channel in swagger.channels -%}
