@@ -3,10 +3,10 @@ import { QWrapperSettings } from 'q-wrapper/lib/models';
 import { Message as amqMessage } from 'amqplib/callback_api';
 import objectReduceByMap from 'object-reduce-by-map';
 import * as operationIds from './operationIds';
-import * as interfaces from './interfaces'
+import * as interfaces from './interfaces';
 {% for path, channel in swagger.channels -%}
 {% if channel.subscribe and _.includes(nodegenRc.helpers.subscribeOpIds, channel.subscribe.operationId) -%}
-import {{ channel.subscribe.operationId }}SubscribeHandle from '../subscribeHandles/{{ ucFirst(channel.subscribe.operationId) }}SubscribeHandle'
+import {{ channel.subscribe.operationId }}SubscribeHandle from '../subscribeHandles/{{ ucFirst(channel.subscribe.operationId) }}SubscribeHandle';
 {% endif -%}
 {% endfor %}
 
@@ -16,9 +16,9 @@ class RabbitMQService {
     await global.qWrapper.initialize();
     this.subscribe();
   }
-  setupCheck(){
-    if(!global.qWrapper){
-      throw new Error('Ensure you call the setup method 1st before calling anything else from this class and call it only once.')
+  setupCheck (): void {
+    if (!global.qWrapper) {
+      throw new Error('Ensure you call the setup method 1st before calling anything else from this class and call it only once.');
     }
   }
 
@@ -30,7 +30,7 @@ class RabbitMQService {
    * OperationID: {{ channel.publish.operationId }}
    * Description: {{ channel.description }}
    */
-  publish{{ ucFirst(channel.publish.operationId) }} (payload: interfaces.{{ channel.publish['x-response-definitions'] }} ): void {
+  publish {{ ucFirst(channel.publish.operationId) }} (payload: interfaces.{{ channel.publish['x-response-definitions'] }} ): void {
     this.setupCheck();
     global.qWrapper.sendToExchange(
       objectReduceByMap(payload, {{ paramsOutputReducer(channel.publish.message.payload) }}),
