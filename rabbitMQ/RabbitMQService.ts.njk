@@ -30,7 +30,7 @@ class RabbitMQService {
    * OperationID: {{ channel.publish.operationId }}
    * Description: {{ channel.description }}
    */
-  publish {{ ucFirst(channel.publish.operationId) }} (payload: interfaces.{{ channel.publish['x-response-definitions'] }} ): void {
+  publish{{ ucFirst(channel.publish.operationId) }} (payload: interfaces.{{ channel.publish['x-response-definitions'] }} ): void {
     this.setupCheck();
     global.qWrapper.sendToExchange(
       objectReduceByMap(payload, {{ paramsOutputReducer(channel.publish.message.payload) }}),
