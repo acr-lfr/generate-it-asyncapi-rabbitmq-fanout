@@ -61,7 +61,7 @@ class RabbitMQService {
               requeue: false
             };
           } catch (e) {
-            console.error({{ channelId }});
+            console.error(operationIds.{{ channelId }});
             console.error(e);
             return {
               processed: false,
