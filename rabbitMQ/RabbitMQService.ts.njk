@@ -49,7 +49,7 @@ class RabbitMQService {
     global.qWrapper.consume(async (message: amqMessage) => {
       switch (message.fields.routingKey) {
         {% for path, channel in swagger.channels -%}
-        {% if channel.subscribe and _.includes(nodegenRc.helpers.subscribeOpIds, channel.subscribe.operationId) %}
+        {% if channel.subscribe and _.includes(nodegenRc.helpers.subscribeOpIds, channel.subscribe.operationId) -%}
         {% set channelId = _.toUpper(channel.subscribe.operationId) -%}
         case operationIds.{{ channelId }}: {
           try {
@@ -61,6 +61,7 @@ class RabbitMQService {
               requeue: false
             };
           } catch (e) {
+            console.error({{ channelId }});
             console.error(e);
             return {
               processed: false,
