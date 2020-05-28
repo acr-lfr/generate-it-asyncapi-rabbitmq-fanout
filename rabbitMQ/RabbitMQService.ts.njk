@@ -52,21 +52,19 @@ class RabbitMQService {
         {% if channel.subscribe and _.includes(nodegenRc.helpers.subscribeOpIds, channel.subscribe.operationId) -%}
         {% set channelId = _.toUpper(channel.subscribe.operationId) -%}
         case operationIds.{{ channelId }}: {
-          try {
-            await {{ channel.subscribe.operationId }}SubscribeHandle(
-              JSON.parse(message.content.toString())
-            );
-            return {
-              processed: true,
-              requeue: false
-            };
+          let messageContent
+          try{
+            messageContent = JSON.parse(message.content.toString())
           } catch (e) {
-            console.error(operationIds.{{ channelId }});
-            console.error(e);
-            return {
-              processed: false,
-              requeue: true
-            };
+            console.error(operationIds.{{ channelId }}, e);
+            return { processed: false, requeue: true };
+          }
+          try {
+            await {{ channel.subscribe.operationId }}SubscribeHandle(messageContent);
+            return { processed: true, requeue: false };
+          } catch (e) {
+            console.error(operationIds.{{ channelId }}, e);
+            return { processed: false, requeue: true };
           }
         }
         {% endif -%}
@@ -80,4 +78,5 @@ class RabbitMQService {
     });
   }
 }
+
 export default new RabbitMQService();
