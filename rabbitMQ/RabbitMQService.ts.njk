@@ -56,14 +56,14 @@ class RabbitMQService {
           try{
             messageContent = JSON.parse(message.content.toString())
           } catch (e) {
-            console.error(operationIds.{{ channelId }}, e);
+            console.error(operationIds.{{ channelId }}, ' error parsing JSON: ', e);
             return { processed: false, requeue: true };
           }
           try {
             await {{ channel.subscribe.operationId }}SubscribeHandle(messageContent);
             return { processed: true, requeue: false };
           } catch (e) {
-            console.error(operationIds.{{ channelId }}, e);
+            console.error(operationIds.{{ channelId }}, ' error parsing domain method: ', e);
             return { processed: false, requeue: true };
           }
         }
