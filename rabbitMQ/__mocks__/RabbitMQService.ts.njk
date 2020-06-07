@@ -1,6 +1,6 @@
 import { QWrapperSettings } from 'q-wrapper/lib/models';
 
-class RabbitMQService {
+const RabbitMQService = {
   setup: async (qWrapperSettings: QWrapperSettings): Promise<void> => {
     console.log('Setup mocked');
   },
@@ -19,4 +19,4 @@ class RabbitMQService {
   {% endif %}{% endfor -%}
 }
 
-export default new RabbitMQService();
+export default RabbitMQService;
