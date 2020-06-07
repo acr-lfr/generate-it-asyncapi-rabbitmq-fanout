@@ -1,0 +1,45 @@
+import { QWrapperDomain } from 'q-wrapper';
+import { QWrapperSettings } from 'q-wrapper/lib/models';
+import { Message as amqMessage } from 'amqplib/callback_api';
+import * as interfaces from '../interfaces';
+
+class RabbitMQService {
+  async setup (qWrapperSettings: QWrapperSettings): Promise<void> {
+    console.log('Setup mocked');
+  }
+
+  setupCheck (): void {
+    console.log('Setup check mocked');
+  }
+
+  {% for path, channel in swagger.channels -%}
+  {% if channel.publish and _.includes(nodegenRc.helpers.publishOpIds, channel.publish.operationId) -%}
+  {% set channelId = _.toUpper(channel.publish.operationId) -%}
+  /**
+   * Path: {{ path }} publish
+   * OperationID: {{ channel.publish.operationId }}
+   * Description: {{ channel.description }}
+   */
+  publish{{ ucFirst(channel.publish.operationId) }} (payload: interfaces.{{ channel.publish['x-response-definitions'] }} ): void {
+    this.setupCheck();
+    console.log('Publish to exchange mocked');
+  }
+  {% endif %}{% endfor -%}
+
+  /**
+   * All subscribe events get handled in the respective subscribeHandles
+   * Each routing key is the operation id.
+   * For any routing key not subscribed to, the item from the is simply marked
+   * as processed for the queue this ms is bound to.
+   */
+  private subscribe (): void {
+    global.qWrapper.consume(async (message: amqMessage) => {
+      return {
+        processed: true,
+        requeue: false
+      };
+    });
+  }
+}
+
+export default new RabbitMQService();
