@@ -15,6 +15,7 @@ class RabbitMQService {
     global.qWrapper = new QWrapperDomain(qWrapperSettings);
     await global.qWrapper.initialize();
     this.subscribe();
+    console.log('RabbitMQService.setup completed.')
   }
   setupCheck (): void {
     if (!global.qWrapper) {
@@ -36,6 +37,7 @@ class RabbitMQService {
       objectReduceByMap(payload, {{ paramsOutputReducer(channel.publish.message.payload) }}),
       operationIds.{{ channelId }}
     );
+    console.log('RabbitMQService.publish{{ ucFirst(channel.publish.operationId) }} called.')
   }
   {% endif %}{% endfor -%}
 
@@ -61,6 +63,7 @@ class RabbitMQService {
           }
           try {
             await {{ channel.subscribe.operationId }}SubscribeHandle(messageContent);
+            console.log('RabbitMQService.subscribe {{ channel.subscribe.operationId }} handled successfully')
             return { processed: true, requeue: false };
           } catch (e) {
             console.error(operationIds.{{ channelId }}, ' error parsing domain method: ', e);
