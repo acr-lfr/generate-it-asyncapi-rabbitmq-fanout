@@ -6,7 +6,7 @@ import * as operationIds from './operationIds';
 import * as interfaces from './interfaces';
 {% for path, channel in swagger.channels -%}
 {% if channel.subscribe and _.includes(nodegenRc.helpers.subscribeOpIds, channel.subscribe.operationId) -%}
-import {{ channel.subscribe.operationId }}SubscribeHandle from '../subscribeHandles/{{ ucFirst(channel.subscribe.operationId) }}SubscribeHandle';
+import {{ channel.subscribe.operationId }}ReactHandle from '../reactHandles/{{ ucFirst(channel.subscribe.operationId) }}ReactHandle';
 {% endif -%}
 {% endfor %}
 
@@ -62,8 +62,8 @@ class RabbitMQService {
             return { processed: false, requeue: true };
           }
           try {
-            await {{ channel.subscribe.operationId }}SubscribeHandle(messageContent);
-            console.log('RabbitMQService.subscribe {{ channel.subscribe.operationId }} handled successfully')
+            await {{ channel.subscribe.operationId }}ReactHandle(messageContent);
+            console.log('RabbitMQService.subscribe {{ channel.subscribe.operationId }} react handled successfully')
             return { processed: true, requeue: false };
           } catch (e) {
             console.error(operationIds.{{ channelId }}, ' error parsing domain method: ', e);
