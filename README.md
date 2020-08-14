@@ -2,6 +2,10 @@
 
 It is expected that this set of templates will be used with the openapi-nodegen-typescript-server templates.
 
+It assumes only a RabbitMQ fanout exchange will be used.
+
+It assumes that you will only be listening to publish event operation ids.
+
 ## Example
 Within an existing server add a new script (point it to your own entry yml file):
 ```
