@@ -5,8 +5,8 @@ import objectReduceByMap from 'object-reduce-by-map';
 import * as operationIds from './operationIds';
 import * as interfaces from './interfaces';
 {% for path, channel in swagger.channels -%}
-{% if channel.subscribe and _.includes(nodegenRc.helpers.subscribeOpIds, channel.subscribe.operationId) -%}
-import {{ channel.subscribe.operationId }}ReactHandle from '../reactHandles/{{ ucFirst(channel.subscribe.operationId) }}ReactHandle';
+{% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
+import {{ channel.publish.operationId }}ReactHandle from '../reactHandles/{{ ucFirst(channel.publish.operationId) }}ReactHandle';
 {% endif -%}
 {% endfor %}
 
@@ -51,8 +51,8 @@ class RabbitMQService {
     global.qWrapper.consume(async (message: amqMessage) => {
       switch (message.fields.routingKey) {
         {% for path, channel in swagger.channels -%}
-        {% if channel.subscribe and _.includes(nodegenRc.helpers.subscribeOpIds, channel.subscribe.operationId) -%}
-        {% set channelId = _.toUpper(channel.subscribe.operationId) -%}
+        {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
+        {% set channelId = _.toUpper(channel.publish.operationId) -%}
         case operationIds.{{ channelId }}: {
           let messageContent
           try{
@@ -62,8 +62,8 @@ class RabbitMQService {
             return { processed: false, requeue: true };
           }
           try {
-            await {{ channel.subscribe.operationId }}ReactHandle(messageContent);
-            console.log('RabbitMQService.subscribe {{ channel.subscribe.operationId }} react handled successfully')
+            await {{ channel.publish.operationId }}ReactHandle(messageContent);
+            console.log('RabbitMQService.subscribe {{ channel.publish.operationId }} react handled successfully')
             return { processed: true, requeue: false };
           } catch (e) {
             console.error(operationIds.{{ channelId }}, ' error parsing domain method: ', e);
