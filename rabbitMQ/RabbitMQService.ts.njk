@@ -62,7 +62,7 @@ class RabbitMQService {
             return { processed: false, requeue: true };
           }
           try {
-            await {{ channel.publish.operationId }}ReactHandle(messageContent);
+            await {{ channel.publish.operationId }}ReactHandle(messageContent, {{ channelId }});
             console.log('RabbitMQService.subscribe {{ channel.publish.operationId }} react handled successfully')
             return { processed: true, requeue: false };
           } catch (e) {
