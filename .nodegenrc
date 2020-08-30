@@ -3,7 +3,7 @@
   "nodegenMockDir": "/__mocks__",
   "nodegenType": "server",
   "helpers": {
-    "dontAutoRequeue": true,
+    "autoRequeue": false,
     "subscribeOpIds": [],
     "publishOpIds": []
   }
