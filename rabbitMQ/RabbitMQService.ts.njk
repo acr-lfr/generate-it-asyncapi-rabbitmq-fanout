@@ -52,6 +52,7 @@ class RabbitMQService {
       switch (message.fields.routingKey) {
         {% for path, channel in swagger.channels -%}
         {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
+        {% set autoRequeue = true if not nodegenRc.helpers.dontAutoRequeue else false -%}
         {% set channelId = _.toUpper(channel.publish.operationId) -%}
         case operationIds.{{ channelId }}: {
           let messageContent
@@ -59,7 +60,7 @@ class RabbitMQService {
             messageContent = JSON.parse(message.content.toString())
           } catch (e) {
             console.error(operationIds.{{ channelId }}, ' error parsing JSON: ', e);
-            return { processed: false, requeue: true };
+            return { processed: false, requeue: {{ autoRequeue }} };
           }
           try {
             await {{ channel.publish.operationId }}ReactHandle(messageContent, operationIds.{{ channelId }});
@@ -67,7 +68,7 @@ class RabbitMQService {
             return { processed: true, requeue: false };
           } catch (e) {
             console.error(operationIds.{{ channelId }}, ' error parsing domain method: ', e);
-            return { processed: false, requeue: true };
+            return { processed: false, requeue: {{ autoRequeue }} };
           }
         }
         {% endif -%}
