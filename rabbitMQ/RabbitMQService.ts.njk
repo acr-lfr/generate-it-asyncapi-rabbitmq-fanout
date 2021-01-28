@@ -4,6 +4,7 @@ import { Message as amqMessage } from 'amqplib/callback_api';
 import objectReduceByMap from 'object-reduce-by-map';
 import * as operationIds from './operationIds';
 import * as interfaces from './interfaces';
+{% set verboseLogging = true if nodegenRc.helpers.verboseLogging else false -%}
 {% for path, channel in swagger.channels -%}
 {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
 import {{ channel.publish.operationId }}ReactHandle from '../reactHandles/{{ ucFirst(channel.publish.operationId) }}ReactHandle';
@@ -37,7 +38,7 @@ class RabbitMQService {
       objectReduceByMap(payload, {{ paramsOutputReducer(channel.publish.message.payload) }}),
       operationIds.{{ channelId }}
     );
-    console.log('RabbitMQService.publish{{ ucFirst(channel.publish.operationId) }} called.')
+    {% if verboseLogging %}console.log('RabbitMQService.publish{{ ucFirst(channel.publish.operationId) }} called.'){% endif %}
   }
   {% endif %}{% endfor -%}
 
@@ -49,35 +50,42 @@ class RabbitMQService {
    */
   private subscribe (): void {
     global.qWrapper.consume(async (message: amqMessage) => {
-      switch (message.fields.routingKey) {
-        {% for path, channel in swagger.channels -%}
-        {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
-        {% set autoRequeue = true if nodegenRc.helpers.autoRequeue else false -%}
-        {% set channelId = _.toUpper(channel.publish.operationId) -%}
-        case operationIds.{{ channelId }}: {
-          let messageContent
-          try{
-            messageContent = JSON.parse(message.content.toString())
-          } catch (e) {
-            console.error(operationIds.{{ channelId }}, ' error parsing JSON: ', e);
-            return { processed: false, requeue: {{ autoRequeue }} };
+      try{
+        switch (message.fields.routingKey) {
+            {% for path, channel in swagger.channels -%}
+            {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
+            {% set autoRequeue = true if nodegenRc.helpers.autoRequeue else false -%}
+            {% set channelId = _.toUpper(channel.publish.operationId) -%}
+          case operationIds.{{ channelId }}: {
+            let messageContent
+            try{
+              messageContent = JSON.parse(message.content.toString())
+            } catch (e) {
+              message.content = Buffer.from(JSON.stringify(e));
+              console.error(operationIds.{{ channelId }}, ' error parsing JSON: ', e);
+              return { processed: false, requeue: {{ autoRequeue }} };
+            }
+            try {
+              await {{ channel.publish.operationId }}ReactHandle(messageContent, operationIds.{{ channelId }});
+              {% if verboseLogging %}console.log('RabbitMQService.subscribe {{ channel.publish.operationId }} react handled successfully'){% endif %}
+              return { processed: true, requeue: false };
+            } catch (e) {
+              message.content = Buffer.from(JSON.stringify(e));
+              console.error(operationIds.{{ channelId }}, ' error parsing domain method: ', e);
+              return { processed: false, requeue: {{ autoRequeue }} };
+            }
           }
-          try {
-            await {{ channel.publish.operationId }}ReactHandle(messageContent, operationIds.{{ channelId }});
-            console.log('RabbitMQService.subscribe {{ channel.publish.operationId }} react handled successfully')
-            return { processed: true, requeue: false };
-          } catch (e) {
-            console.error(operationIds.{{ channelId }}, ' error parsing domain method: ', e);
-            return { processed: false, requeue: {{ autoRequeue }} };
-          }
+            {% endif -%}
+            {% endfor -%}
+          default:
+            return {
+              processed: true,
+              requeue: false
+            };
         }
-        {% endif -%}
-        {% endfor -%}
-        default:
-          return {
-            processed: true,
-            requeue: false
-          };
+      } catch (e) {
+        message.content = Buffer.from(JSON.stringify(e));
+        return { processed: false, requeue: {{ autoRequeue }} };
       }
     });
   }
