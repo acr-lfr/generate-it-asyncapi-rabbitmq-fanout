@@ -5,6 +5,7 @@ import objectReduceByMap from 'object-reduce-by-map';
 import * as operationIds from './operationIds';
 import * as interfaces from './interfaces';
 {% set verboseLogging = true if nodegenRc.helpers.verboseLogging else false -%}
+{% set autoRequeue = true if nodegenRc.helpers.autoRequeue else false -%}
 {% for path, channel in swagger.channels -%}
 {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
 import {{ channel.publish.operationId }}ReactHandle from '../reactHandles/{{ ucFirst(channel.publish.operationId) }}ReactHandle';
@@ -54,7 +55,6 @@ class RabbitMQService {
         switch (message.fields.routingKey) {
             {% for path, channel in swagger.channels -%}
             {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
-            {% set autoRequeue = true if nodegenRc.helpers.autoRequeue else false -%}
             {% set channelId = _.toUpper(channel.publish.operationId) -%}
           case operationIds.{{ channelId }}: {
             let messageContent
