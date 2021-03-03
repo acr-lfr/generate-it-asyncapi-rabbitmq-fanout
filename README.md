@@ -44,3 +44,20 @@ declare namespace NodeJS {
   }
 }
 ```
+
+## Logging
+You can increase the amount of logging via the nodegenrc file:
+
+```
+```json
+{
+  "nodegenDir": "rabbitMQ",
+  "nodegenMockDir": "/__mocks__",
+  "nodegenType": "server",
+  "helpers": {
+    "subscribeOpIds": ["msAuthCacheConnection"],
+    "publishOpIds": ["msImageCacheUser"],
+    "verboseLogging": true
+  }
+}
+```
