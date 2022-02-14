@@ -36,10 +36,14 @@ class RabbitMQService {
   publish{{ ucFirst(channel.publish.operationId) }} (payload: interfaces.{{ channel.publish['x-response-definitions'] }} ): void {
     this.setupCheck();
     global.qWrapper.sendToExchange(
-      objectReduceByMap(payload, {{ paramsOutputReducer(channel.publish.message.payload) }}),
+      objectReduceByMap(payload, this.publish{{ ucFirst(channel.publish.operationId) }}Map()),
       operationIds.{{ channelId }}
     );
     {% if verboseLogging %}console.log('RabbitMQService.publish{{ ucFirst(channel.publish.operationId) }} called.'){% endif %}
+  }
+
+  publish{{ ucFirst(channel.publish.operationId) }}Map () {
+    return {{ _.trimEnd(paramsOutputReducer(channel.publish.message.payload), ',') }};
   }
   {% endif %}{% endfor -%}
 
