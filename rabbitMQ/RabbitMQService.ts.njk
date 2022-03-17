@@ -20,9 +20,17 @@ export const publish{{ ucFirst(channel.publish.operationId) }}Map = {{ _.trimEnd
 
 {% endif %}{% endfor -%}
 
+
+export interface RabbitMQServiceSetup extends QWrapperSettings {
+  subscribeErrorHandle?: (operationId: string, err: any) => void
+}
+
 class RabbitMQService {
-  async setup (qWrapperSettings: QWrapperSettings): Promise<void> {
-    global.qWrapper = new QWrapperDomain(qWrapperSettings);
+  subscribeErrorHandle?: (operationId: string, err: any) => void = undefined
+
+  async setup (settings: RabbitMQServiceSetup): Promise<void> {
+    this.subscribeErrorHandle = settings.subscribeErrorHandle
+    global.qWrapper = new QWrapperDomain(settings);
     await global.qWrapper.initialize();
     this.subscribe();
     console.log('RabbitMQService.setup completed.')
@@ -79,6 +87,9 @@ class RabbitMQService {
               return { processed: true, requeue: false };
             } catch (e) {
               message.content = Buffer.from(JSON.stringify(e));
+              if(this.subscribeErrorHandle){
+                this.subscribeErrorHandle('{{ channel.publish.operationId }}', e);
+              }
               console.error(operationIds.{{ channelId }}, ' error parsing domain method: ', e);
               return { processed: false, requeue: {{ autoRequeue }} };
             }
