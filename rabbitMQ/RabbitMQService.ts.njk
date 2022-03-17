@@ -26,7 +26,7 @@ export interface RabbitMQServiceSetup extends QWrapperSettings {
 }
 
 class RabbitMQService {
-  subscribeErrorHandle?: (err: any) => void = undefined
+  subscribeErrorHandle?: (operationId: string, err: any) => void = undefined
 
   async setup (settings: RabbitMQServiceSetup): Promise<void> {
     this.subscribeErrorHandle = settings.subscribeErrorHandle
