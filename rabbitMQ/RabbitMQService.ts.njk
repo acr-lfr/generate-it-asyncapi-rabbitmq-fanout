@@ -78,7 +78,7 @@ class RabbitMQService {
               messageContent = JSON.parse(message.content.toString())
             } catch (e) {
               message.content = Buffer.from(JSON.stringify(e));
-              console.error(operationIds.{{ channelId }}, ' error parsing JSON: ', e);
+              console.error(operationIds.{{ channelId }}, ' error parsing JSON: '{% if verboseLogging %}, e{% endif %});
               return { processed: false, requeue: {{ autoRequeue }} };
             }
             try {
@@ -90,7 +90,7 @@ class RabbitMQService {
               if(this.subscribeErrorHandle){
                 this.subscribeErrorHandle('{{ channel.publish.operationId }}', e);
               }
-              console.error(operationIds.{{ channelId }}, ' error parsing domain method: ', e);
+              console.error(operationIds.{{ channelId }}, ' error parsing domain method: ' {% if verboseLogging %}, e{% endif %});
               return { processed: false, requeue: {{ autoRequeue }} };
             }
           }
