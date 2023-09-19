@@ -8,7 +8,7 @@ import * as interfaces from './interfaces';
 {% set autoRequeue = true if nodegenRc.helpers.autoRequeue else false -%}
 {% for path, channel in swagger.channels -%}
 {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
-import {{ channel.publish.operationId }}ReactHandle from '../reactHandles/{{ ucFirst(channel.publish.operationId) }}ReactHandle';
+import {{ channel.publish.operationId }}ReactHandle from '../reactHandles/{{ ucFirst(_.camelCase(channel.publish.operationId)) }}ReactHandle';
 {% endif -%}
 {% endfor %}
 
@@ -43,13 +43,13 @@ class RabbitMQService {
 
   {% for path, channel in swagger.channels -%}
     {% if channel.publish and _.includes(nodegenRc.helpers.publishOpIds, channel.publish.operationId) -%}
-    {% set channelId = _.toUpper(channel.publish.operationId) -%}
+    {% set channelId = _.toUpper(_.camelCase(channel.publish.operationId)) -%}
   /**
    * Path: {{ path }} publish
    * OperationID: {{ channel.publish.operationId }}
    * Description: {{ channel.description }}
    */
-  publish{{ ucFirst(channel.publish.operationId) }} (payload: interfaces.{{ channel.publish['x-response-definitions'] }} ): void {
+  publish{{ ucFirst(_.camelCase(channel.publish.operationId)) }} (payload: interfaces.{{ channel.publish['x-response-definitions'] }} ): void {
     this.setupCheck();
     global.qWrapper.sendToExchange(
       objectReduceByMap(payload, publish{{ ucFirst(channel.publish.operationId) }}Map),
