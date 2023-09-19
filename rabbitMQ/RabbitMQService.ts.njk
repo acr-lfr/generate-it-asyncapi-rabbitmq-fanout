@@ -71,7 +71,7 @@ class RabbitMQService {
         switch (message.fields.routingKey) {
             {% for path, channel in swagger.channels -%}
             {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
-            {% set channelId = _.toUpper(channel.publish.operationId) -%}
+            {% set channelId = _.toUpper(_.camelCase(channel.publish.operationId)) -%}
           case operationIds.{{ channelId }}: {
             let messageContent
             try{
