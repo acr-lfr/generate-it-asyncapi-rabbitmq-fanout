@@ -2,21 +2,27 @@ import { QWrapperDomain } from 'q-wrapper';
 import { QWrapperSettings } from 'q-wrapper/lib/models';
 import { Message as amqMessage } from 'amqplib/callback_api';
 import objectReduceByMap from 'object-reduce-by-map';
+import picomatch from 'picomatch';
 import * as operationIds from './operationIds';
 import * as interfaces from './interfaces';
+
 {% set verboseLogging = true if nodegenRc.helpers.verboseLogging else false -%}
 {% set autoRequeue = true if nodegenRc.helpers.autoRequeue else false -%}
+
 {% for path, channel in swagger.channels -%}
 {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
-import {{ channel.publish.operationId }}ReactHandle from '../reactHandles/{{ ucFirst(_.camelCase(channel.publish.operationId)) }}ReactHandle';
+
+import {{ _.camelCase(channel.publish.operationId) }}ReactHandle from '../reactHandles/{{ ucFirst(_.camelCase(channel.publish.operationId)) }}ReactHandle';
+
 {% endif -%}
 {% endfor %}
 
 {% for path, channel in swagger.channels -%}
 {% if channel.publish and _.includes(nodegenRc.helpers.publishOpIds, channel.publish.operationId) -%}
 {% set channelId = _.toUpper(channel.publish.operationId) -%}
+
 // OperationID: {{ channel.publish.operationId }}
-export const publish{{ ucFirst(channel.publish.operationId) }}Map = {{ _.trimEnd(paramsOutputReducer(channel.publish.message.payload), ',') }};
+export const publish{{ ucFirst(_.camelCase(channel.publish.operationId)) }}Map = {{ _.trimEnd(paramsOutputReducer(channel.publish.message.payload), ',') }};
 
 {% endif %}{% endfor -%}
 
@@ -52,12 +58,16 @@ class RabbitMQService {
   publish{{ ucFirst(_.camelCase(channel.publish.operationId)) }} (payload: interfaces.{{ channel.publish['x-response-definitions'] }} ): void {
     this.setupCheck();
     global.qWrapper.sendToExchange(
-      objectReduceByMap(payload, publish{{ ucFirst(channel.publish.operationId) }}Map),
+      objectReduceByMap(payload, publish{{ ucFirst(_.camelCase(channel.publish.operationId)) }}Map),
       operationIds.{{ channelId }}
     );
     {% if verboseLogging %}console.log('RabbitMQService.publish{{ ucFirst(channel.publish.operationId) }} called.'){% endif %}
   }
   {% endif %}{% endfor -%}
+
+  wildcardMatch (incomingRoutingKey: string, matchRoutingKey: string) {
+    return picomatch.isMatch(incomingRoutingKey, matchRoutingKey) ? incomingRoutingKey : '';
+  }
 
   /**
    * All subscribe events get handled in the respective subscribeHandles
@@ -67,44 +77,33 @@ class RabbitMQService {
    */
   private subscribe (): void {
     global.qWrapper.consume(async (message: amqMessage) => {
-      try{
-        switch (message.fields.routingKey) {
-            {% for path, channel in swagger.channels -%}
-            {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
+      switch (message.fields.routingKey) {
+        {% for path, channel in swagger.channels -%}
+          {% if channel.publish and _.includes(nodegenRc.helpers.subscribeOpIds, channel.publish.operationId) -%}
             {% set channelId = _.toUpper(_.camelCase(channel.publish.operationId)) -%}
-          case operationIds.{{ channelId }}: {
-            let messageContent
-            try{
-              messageContent = JSON.parse(message.content.toString())
-            } catch (e) {
-              message.content = Buffer.from(JSON.stringify(e));
-              console.error(operationIds.{{ channelId }}, ' error parsing JSON: '{% if verboseLogging %}, e{% endif %});
-              return { processed: false, requeue: {{ autoRequeue }} };
-            }
-            try {
-              await {{ channel.publish.operationId }}ReactHandle(messageContent, operationIds.{{ channelId }});
+      case this.wildcardMatch(message.fields.routingKey, operationIds.{{ channelId }}): {
+          let messageContent = JSON.parse(message.content.toString())
+          try {
+            await {{ _.camelCase(channel.publish.operationId) }}ReactHandle(messageContent, operationIds.{{ channelId }});
               {% if verboseLogging %}console.log('RabbitMQService.subscribe {{ channel.publish.operationId }} react handled successfully'){% endif %}
-              return { processed: true, requeue: false };
-            } catch (e) {
-              message.content = Buffer.from(JSON.stringify(e));
-              if(this.subscribeErrorHandle){
-                this.subscribeErrorHandle('{{ channel.publish.operationId }}', e);
-              }
-              console.error(operationIds.{{ channelId }}, ' error parsing domain method: ' {% if verboseLogging %}, e{% endif %});
-              return { processed: false, requeue: {{ autoRequeue }} };
+            return { processed: true, requeue: false };
+          } catch (e) {
+            message.content = Buffer.from(JSON.stringify(e));
+            if(this.subscribeErrorHandle){
+              this.subscribeErrorHandle('{{ channel.publish.operationId }}', e);
             }
+            console.error(operationIds.{{ channelId }}, ' error parsing domain method: ' {% if verboseLogging %}, e{% endif %});
+            return { processed: false, requeue: {{ autoRequeue }} };
           }
-            {% endif -%}
-            {% endfor -%}
-          default:
-            return {
-              processed: true,
-              requeue: false
-            };
         }
-      } catch (e) {
-        message.content = Buffer.from(JSON.stringify(e));
-        return { processed: false, requeue: {{ autoRequeue }} };
+
+          {% endif -%}
+        {% endfor -%}
+        default:
+          return {
+            processed: true,
+            requeue: false
+          };
       }
     });
   }
