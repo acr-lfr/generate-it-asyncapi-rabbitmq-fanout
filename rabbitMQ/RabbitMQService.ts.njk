@@ -90,7 +90,7 @@ class RabbitMQService {
           } catch (e) {
             message.content = Buffer.from(JSON.stringify(e));
             if(this.subscribeErrorHandle){
-              this.subscribeErrorHandle('{{ channel.publish.operationId }}', e);
+              this.subscribeErrorHandle('{{ channel.publish.operationId }}', {error: e, qPayload: messageContent});
             }
             console.error(operationIds.{{ channelId }}, ' error parsing domain method: ' {% if verboseLogging %}, e{% endif %});
             return { processed: false, requeue: {{ autoRequeue }} };
